@@ -146,12 +146,12 @@ int post_request_type(cJSON *pstRoot, char* sendmsg, int size)
         printf("request_type = %s\n",pstGroup->valuestring);
         if(!strcmp(pstGroup->valuestring,"friend"))             //加好友请求
         {
-            ret = post_message_type(pstRoot, sendmsg, size);
+            
         }
 
         if(!strcmp(pstGroup->valuestring,"group"))              //加群请求
         {
-            ret = post_message_type(pstRoot, sendmsg, size);
+            
         }
     }
     return ret;
@@ -169,12 +169,12 @@ int post_message_type(cJSON *pstRoot, char* sendmsg, int size)
         printf("message_type = %s\n",pstGroup->valuestring);
         if(!strcmp(pstGroup->valuestring,"private"))
         {
-            ret = post_message_type(pstRoot, sendmsg, size);
+            
         }
 
         if(!strcmp(pstGroup->valuestring,"group"))
         {
-            ret = post_message_type(pstRoot, sendmsg, size);
+            
         }
     }
     return ret;

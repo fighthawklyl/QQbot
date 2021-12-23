@@ -2,6 +2,7 @@
 #ifndef INIT_H_
 #define INIT_H_
 
+
 //初始化，检查配置文件，
 //存在返回 0 ，不存在从github仓库拉取，拉去成功返回 1，拉取失败返回 -1
 int checkfile(void);
@@ -20,6 +21,9 @@ int load_GroupConfig(void);
 //读取个人信息配置文件 Private.Config
 //成功返回 0 失败返回-1
 int load_PrivateConfig(void);
+
+//读取jd配置信息
+int load_JdConfig(void);
 
 //初始化配置
 int init_Config(void);

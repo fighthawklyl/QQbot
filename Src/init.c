@@ -1,11 +1,39 @@
+#include <unistd.h>
+#include <fcntl.h>
 #include "init.h"
-
+#include "cJSON.h"
 
 //初始化，检查配置文件，
 //存在返回 0 ，不存在从github仓库拉取，拉去成功返回 1，拉取失败返回 -1
 int checkfile(void)
 {
-    return 0;
+    int ret = 0;
+    if(access("./config/GroupConfig.json",F_OK))
+    {
+        ret = -1;
+    }
+
+    if(access("./config/JdConfig.json",F_OK))
+    {
+        ret = -1;
+    }
+
+    if(access("./config/PrivateConfig.json",F_OK))
+    {
+        ret = -1;
+    }
+    
+    if(access("./config/ServerConfig.json",F_OK))
+    {
+        ret = -1;
+    }
+    
+    if(access("./config/UserConfig.json",F_OK))
+    {
+        ret = -1;
+    }
+
+    return ret;
 }
 
 //读取服务器配置，主要配置ip端口等信息 Server.Config
@@ -31,6 +59,12 @@ int load_GroupConfig(void)
 //读取个人信息配置文件 Private.Config
 //成功返回 0 失败返回-1
 int load_PrivateConfig(void)
+{
+    return 0;
+}
+
+//读取jd配置信息
+int load_JdConfig(void)
 {
     return 0;
 }
