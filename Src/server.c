@@ -366,7 +366,7 @@ void Create_CQ_Server(void* args)
     bzero(&server, sizeof(server));
 
     server.sin_family = AF_INET;
-    server.sin_port = htons(serverconfig->cqport);
+    server.sin_port = htons(serverconfig->port);
     server.sin_addr.s_addr = inet_addr(serverconfig->host);
 //  server.sin_addr.s_addr = htonl(INADDR_ANY);
     if(bind(listenfd, (struct sockaddr *)&server, sizeof(server)) == -1)

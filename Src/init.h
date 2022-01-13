@@ -2,6 +2,32 @@
 #ifndef INIT_H_
 #define INIT_H_
 
+typedef struct UserConfig
+{
+    int root;   //超级管理员qq
+    int *admin; //普通管理员qq  //区别在于有无 添加管理员的权限和 qq群中的高级权限(禁言之类)
+}UserConfig;
+
+typedef struct JdList
+{
+    int qq;
+    char account[20];
+}JdList;
+
+typedef struct JdCmd
+{
+    char *cmd;
+    char *jdcmd;
+}JdCmd;
+
+typedef struct JdConfig
+{
+    JdList* jdlist;
+    JdCmd* jdcmd;
+    char* beanpath;
+    char* cookiepath;
+}JdConfig;
+
 
 //初始化，检查配置文件，
 //存在返回 0 ，不存在从github仓库拉取，拉去成功返回 1，拉取失败返回 -1
@@ -27,4 +53,5 @@ int load_JdConfig(void);
 
 //初始化配置
 int init_Config(void);
+
 #endif

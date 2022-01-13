@@ -5,7 +5,7 @@
 typedef struct ServerConfig
 {
     char host[20];
-    int cqport;
+    int port;
     int yysport;
 }ServerConfig;
 
