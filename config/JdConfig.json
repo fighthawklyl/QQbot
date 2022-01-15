@@ -5,9 +5,12 @@
             "account":"账号1"
         }
     ],
-    "jdcmd":{
-        "查豆子":""
-    },
+    "jdcmdlist":[
+        {
+            "cmd":"查豆子",
+            "jdcmd":""
+        }
+    ],
     "beanpath":"",
     "cookiepath":""
 }

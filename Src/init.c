@@ -17,6 +17,7 @@ extern ServerConfig serverconfig;
 extern ClientConfig clientconfig;
 
 UserConfig userconfig;
+JdConfig jdconfig;
 
 //初始化，检查配置文件，
 //存在返回 0 ，不存在从github仓库拉取，拉去成功返回 1，拉取失败返回 -1
@@ -194,7 +195,10 @@ int load_UserConfig(void)
             for(int i = 0; i < arrsize; i++)
             {
                 cJSON* temp = cJSON_GetArrayItem(pItem, i);
-                if(NUll != temp && temp->type == )
+                if(NUll != temp && temp->type == cJSON_Number)
+                {
+                    userconfig.admin[i] = temp->valueint;
+                }
             }
             num |= 0x2;
         }
@@ -214,8 +218,7 @@ _ret:
         pstRoot = NULL;
     }
 
-    return num & 0x1B ? 0 : -1;
-
+    return num & 0x3 ? 0 : -1;
 }
 
 //读取群信息配置文件 Group.Config
@@ -235,7 +238,170 @@ int load_PrivateConfig(void)
 //读取jd配置信息
 int load_JdConfig(void)
 {
-    return 0;
+    int filesize = -1;
+    char *pBuffer = NULL;
+    cJSON *pstRoot = NULL;
+    cJSON *pItem = NULL;
+    cJSON *ptemp = NULL;
+    int num = 0;
+
+    filesize = FileGetSize(JDCONFIG_PATH)
+    if(filesize < 0)
+    {
+        return -1;
+    }
+
+    pBuffer = malloc(filesize);
+    if(NULL == pBuffer)
+    {
+        goto _ret;
+    }
+
+    memset(pBuffer, 0, filesize);
+
+    if(FileRead(JDCONFIG_PATH, pBuffer, filesize))
+    {
+        pstRoot = cJSON_Parse(pBuffer);
+        if(NULL == pstRoot)
+        {
+            goto _ret;
+        }
+        
+        memset(jdconfig, 0, sizeof(jdconfig));
+
+        pItem = cJSON_GetObjectItem(pstRoot, "jdlist");
+        if(NULL != pItem && pItem->type == cJSON_Array)
+        {
+            int arrsize = cJSON_GetArraySize(pItem);
+            if(arrsize)
+            {
+                jdconfig.jdlist = malloc(arrsize * sizeof(JdList));
+                if(NULL == jdconfig.jdlist)
+                {
+                    goto _ret;
+                }
+            }
+
+            for(int i = 0; i < arrsize; i++)
+            {
+                cJSON* temp = cJSON_GetArrayItem(pItem, i);
+                if(NULL != temp && temp->type == cJSON_Object)
+                {
+                    ptemp = cJSON_GetObjectItem(temp, "qq");
+                    if(NULL != pItem && pItem->type == cJSON_Number)
+                    {
+                        jdconfig.jdlist[i]->qq = ptemp->valueint;
+                    }
+
+                    ptemp = cJSON_GetObjectItem(temp, "account");
+                    if(NULL != pItem && pItem->type == cJSON_String)
+                    {
+                        int strsize = strlen(ptemp->valuestring);
+                        jdconfig.jdlist[i].account = malloc(strsize + 1);
+                        if(NULL == jdconfig.jdlist[i].account)
+                        {
+                            goto _ret;
+                        }
+
+                        memcpy(jdconfig.jdlist[i].account, ptemp->valuestring, strsize);
+                    }
+                }
+            }
+            num |= 0x1;
+        }
+
+        pItem = cJSON_GetObjectItem(pstRoot, "jdcmdlist");
+        if(NULL != pItem && pItem->type == cJSON_Array)
+        {
+            int arrsize = cJSON_GetArraySize(pItem);
+            if(arrsize)
+            {
+                jdconfig.jdcmdlist = malloc(arrsize * sizeof(JdCmdList));
+                if(NULL == jdconfig.jdcmdlist)
+                {
+                    goto _ret;
+                }
+            }
+            
+            for(int i = 0; i < arrsize; i++)
+            {
+                cJSON* temp = cJSON_GetArrayItem(pItem, i);
+
+                if(NULL != temp && temp->type == cJSON_Object)
+                {
+                    ptemp = cJSON_GetObjectItem(temp, "cmd");
+                    if(NULL != pItem && pItem->type == cJSON_String)
+                    {
+                        int strsize = strlen(ptemp->valuestring);
+                        jdconfig.jdcmdlist[i].cmd = malloc(strsize + 1);
+                        if(NULL == jdconfig.jdcmdlist[i].cmd)
+                        {
+                            goto _ret;
+                        }
+
+                        memcpy(dconfig.jdcmdlist[i].cmd, ptemp->valuestring, strsize);
+                    }
+
+                    ptemp = cJSON_GetObjectItem(temp, "jdcmd");
+                    if(NULL != pItem && pItem->type == cJSON_String)
+                    {
+                        int strsize = strlen(ptemp->valuestring);
+                        jdconfig.jdcmdlist[i].jdcmd = malloc(strsize + 1);
+                        if(NULL == jdconfig.jdcmdlist[i].jdcmd)
+                        {
+                            goto _ret;
+                        }
+
+                        memcpy(dconfig.jdcmdlist[i].cmd, ptemp->valuestring, strsize);
+                    }  
+                }
+            }
+            num |= 0x2;
+        }
+
+        pItem = cJSON_GetObjectItem(pstRoot, "beanpath");
+        if(NULL != pItem && pItem->type == cJSON_String)
+        {
+            int strsize = strlen(pItem->valuestring);
+            jdconfig.beanpath = malloc(strsize + 1);
+            if(NULL == jdconfig.beanpath)
+            {
+                goto _ret;
+            }
+
+            memcpy(jdconfig.beanpath, pItem, strsize);
+            num |= 0x4;
+        }
+
+        pItem = cJSON_GetObjectItem(pstRoot, "cookiepath");
+        if(NULL != pItem && pItem->type == cJSON_String)
+        {
+            int strsize = strlen(pItem->valuestring);
+            jdconfig.cookiepath = malloc(strsize + 1);
+            if(NULL == jdconfig.cookiepath)
+            {
+                goto _ret;
+            }
+
+            memcpy(jdconfig.cookiepath, pItem, strsize);
+            num |= 0x8;
+        }
+    }
+
+_ret:
+    if(pBuffer)
+    {
+        free(pBuffer);
+        pBuffer = NULL;
+    }
+
+    if(pstRoot)
+    {
+        cJSON_Delete(pstRoot);
+        pstRoot = NULL;
+    }
+
+    return num & 0xF ? 0 : -1;
 }
 
 //初始化配置
@@ -272,5 +438,10 @@ int init_Config(void)
         return -1;
     }
 
+    if(load_JdConfig())
+    {
+        return -1;
+    }
+    
     return 0;
 }

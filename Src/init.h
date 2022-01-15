@@ -14,16 +14,16 @@ typedef struct JdList
     char account[20];
 }JdList;
 
-typedef struct JdCmd
+typedef struct JdCmdList
 {
     char *cmd;
     char *jdcmd;
-}JdCmd;
+}JdCmdList;
 
 typedef struct JdConfig
 {
     JdList* jdlist;
-    JdCmd* jdcmd;
+    JdCmdList* jdcmdlist;
     char* beanpath;
     char* cookiepath;
 }JdConfig;
