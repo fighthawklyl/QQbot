@@ -1,7 +1,7 @@
 # 定义相关变量
 CC=gcc     		
 STD=-std=gnu99
-LIB= -lm
+LIB= -lm -lpthread
 FLAGS=-Wall # -Werror -Wall
 OBJ=cJSON.o server.o
 BIN=qq

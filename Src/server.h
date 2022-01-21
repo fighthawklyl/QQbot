@@ -16,9 +16,15 @@ typedef struct ClientConfig
     int port;
 }ClientConfig;
 
+typedef struct Yys_fd 
+{
+    int qq[10];
+    int fd[10];
+}Yys_fd;
+
 //向cq发送http请求，并接收返回内容。sendbuf要发送的请求，recvbuf用于接收返回的数据。返回值：成功返回recvbuf接收到的数据长度
 //失败返回 -1；
-int send_request_msg(ClientConfig* clientconfig, char* sendbuf, char* recvbuf, int recvsize)
+int send_request_msg(ClientConfig* clientconfig, char* sendbuf, char* recvbuf, int recvsize);
 
 //创建cq server线程
 void Create_CQ_Server(void* args);

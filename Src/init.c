@@ -16,37 +16,55 @@
 extern ServerConfig serverconfig;
 extern ClientConfig clientconfig;
 
-UserConfig userconfig;
-JdConfig jdconfig;
+extern UserConfig userconfig;
+extern JdConfig jdconfig;
 
 //初始化，检查配置文件，
-//存在返回 0 ，不存在从github仓库拉取，拉去成功返回 1，拉取失败返回 -1
+//成功返回 0 ，不存在从github仓库拉取，
 int checkfile(void)
 {
+    system("apt install wget");
     int ret = 0;
+
+    if(access("./config",F_OK))
+    {
+        system("mkdir ./config");
+        access("./config",F_OK) && return -1;
+    }
+
     if(access("./config/GroupConfig.json",F_OK))
     {
-        ret = -1;
+        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/GroupConfig.json\" "); 
+        system("mv ./GroupConfig.json ./config/GroupConfig.json");
+        access("./config/GroupConfig.json",F_OK) && ret += 1;
     }
 
     if(access("./config/JdConfig.json",F_OK))
     {
-        ret = -1;
+        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/JdConfig.json\" "); 
+        system("mv ./JdConfig.json ./config/JdConfig.json");
+        access("./config/JdConfig.json",F_OK) && ret += 2;
     }
 
     if(access("./config/PrivateConfig.json",F_OK))
     {
-        ret = -1;
+        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/PrivateConfig.json\" "); 
+        system("mv ./PrivateConfig.json ./config/PrivateConfig.json");
+        access("./config/PrivateConfig.json",F_OK) && ret += 4;
     }
     
     if(access("./config/ServerConfig.json",F_OK))
     {
-        ret = -1;
+        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/ServerConfig.json\" "); 
+        system("mv ./ServerConfig.json ./config/ServerConfig.json");
+        access("./config/ServerConfig.json",F_OK) && ret += 8;
     }
     
     if(access("./config/UserConfig.json",F_OK))
     {
-        ret = -1;
+        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/UserConfig.json\" "); 
+        system("mv ./UserConfig.json ./config/UserConfig.json");
+        access("./config/UserConfig.json",F_OK) && ret += 16;
     }
 
     return ret;
