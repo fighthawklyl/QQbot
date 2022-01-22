@@ -185,21 +185,155 @@ int Yys_msg_send(int qq, char* data, int size)
 {
     for(int i = 0; i < 10; i++)
     {
-        if(yys_fd.fd[i] == qq)
+        if(yys_fd.qq[i] == qq && yys_fd.fd[i] > 0)
         {
             pthread_mutex_lock(g_mutexyys);
             send(yys_fd.fd[i], data, size, 0);
             pthread_mutex_unlock(g_mutexyys);
+            return 0;
         }
     }
+    return -1;
+}
+
+int Yys_jpg_recv(cJSON* pstRoot, int index)
+{
+    cJSON* pItem = NULL;
+    cJSON* pRoot = NULL;
+    char* jpg_path = NULL;
+    fd_set Readfd;
+    char data[50] = {};
+    int datalen = 0;
+    int size = 0;
+    int len = 0;
+    int iret = -1;
+    char buf[MAXRECVLEN];
+    struct timeval TimeOut;
+
+    pItem = cJSON_GetObjectItem(pstRoot, "jpg_sign");
+    if(NULL != pItem && pItem->type == cJSON_Number)
+    {
+        if(pItem->valueint == 0)
+        {
+            pItem = cJSON_GetObjectItem(pstRoot, "jpgname");
+            if(NULL != pItem && pItem->type == cJSON_String)
+            {
+                jpg_path = pItem->valuestring;
+                int fd = open(jpg_path, O_WRONLY | O_TRUNC);
+                if(fd)
+                {  
+                    datalen = strlen("{\"reply\":\"ok\"}");
+                    memcpy(data, &datalen, sizeof(datalen));
+                    memcpy(data + sizeof(datalen), "{\"reply\":\"ok\"}", datalen);
+
+                    while(1)
+                    {
+                        TimeOut.tv_sec  = 0;
+                        TimeOut.tv_usec = 1000;
+                        FD_ZERO(&Readfd);
+                        FD_SET(yys_fd.fd[index], &Readfd);
+                        iret = select(yys_fd.fd[index] + 1, &Readfd, NULL, NULL, &TimeOut);
+                        if(iret)
+                        {
+                            memset(buf, 0, MAXRECVLEN);
+                            iret = recv(yys_fd.fd[index], buf, MAXRECVLEN, 0);
+                            if(iret <= 0)
+                            {
+                                close(yys_fd.fd[index]);
+                                yys_fd.fd[index] = -1;
+                                yys_fd.qq[index] = -1;
+                                goto _ret;
+                            }
+
+                            memcpy((void*)&size, buf, 4);
+                            len = strlen(buf+4);
+                            if(size == len)
+                            {
+                                pRoot = cJSON_Parse(buf+4);
+                                if(pRoot)
+                                {
+                                    pItem = cJSON_GetObjectItem(pRoot, "type");
+                                    if(NULL != pItem && pItem->type == cJSON_String)
+                                    {
+                                        if(0 == strcpy(pItem->valuestring, "jpg"))
+                                        {
+                                            pItem = cJSON_GetObjectItem(pRoot, "jpgname");
+                                            if(NULL != pItem && pItem->type == cJSON_String)
+                                            {
+                                                if(0 == strcpy(pItem->valuestring, jpg_path))
+                                                {
+                                                    pItem = cJSON_GetObjectItem(pRoot, "jpg_sign");
+                                                    if(NULL != pItem && pItem->type == cJSON_Number)
+                                                    {
+                                                        int sign = pItem->valueint;
+                                                        if(sign == 0)
+                                                        {
+                                                            goto _ret;
+                                                        }
+                                                        else if(sign == 1 || sign == 2)
+                                                        {
+                                                            pItem = cJSON_GetObjectItem(pRoot, "jpg");
+                                                            if(NULL != pItem && pItem->type == cJSON_String)
+                                                            {
+                                                                write(fd, pItem->valuestring, strlen(pItem->valuestring));
+                                                                if(sign == 2)
+                                                                {
+                                                                    if(pRoot)
+                                                                    {
+                                                                        free(pRoot);
+                                                                        pRoot = NULL;
+                                                                    }
+                                                                    close(fd);
+                                                                    return 0;
+                                                                }
+                                                                send(yys_fd.fd[index], data, 4+datalen, 0);
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            goto _ret;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if(pRoot)
+                                {
+                                    free(pRoot);
+                                    pRoot = NULL;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+_ret:
+    if(pRoot)
+    {
+        free(pRoot);
+        pRoot = NULL;
+    }
+    close(fd);
+    return -1;
 }
 
 //心跳
 void YYS_Server(void* args)
 {
     char buf[1024];
+    char data[100];
     int iret = -1;
+    int ret = -1;
+    int size = 0;
+    int len = 0;
+    int datalen = 0;
     fd_set Readfd;
+    cJSON *pstRoot = NULL;
+    cJSON *pItem = NULL;
     struct timeval TimeOut;
     while(1)
     {
@@ -216,29 +350,76 @@ void YYS_Server(void* args)
                 iret = select(yys_fd.fd[i] + 1, &Readfd, NULL, NULL, &TimeOut);
                 if(iret)
                 {
-                    int iret = recv(yys_fd.fd[i], buf, MAXRECVLEN, 0);
+                    memset(buf, 0, 1024);
+                    memset(data, 0, 100);
+
+                    datalen = strlen("{\"reply\":\"fail\"}");
+                    memcpy(data, &datalen, sizeof(datalen));
+                    memcpy(data + sizeof(datalen), "{\"reply\":\"fail\"}", datalen);
+
+                    iret = recv(yys_fd.fd[i], buf, MAXRECVLEN, 0);
                     if(iret <= 0)
                     {
                         close(yys_fd.fd[i]);
                         yys_fd.fd[i] = -1;
+                        yys_fd.qq[i] = -1;
+                        send(yys_fd.fd[i], data, 4+datalen, 0);
+                        usleep(10);
                         pthread_mutex_unlock(g_mutexyys);
-                        break;
+                        continue;
                     }
-                    int size = 0;
+
                     memcpy((void*)&size, buf, 4);
-                    int len = strlen(buf+4);
+                    len = strlen(buf+4);
                     if(size == len)
                     {
-                        char* str = strstr(buf+4, "qq:");
-                        yys_fd.qq[i] = atoi(str+3);
+                        pstRoot = cJSON_Parse(buf+4);
+                        if(pstRoot)
+                        {
+                            pItem = cJSON_GetObjectItem(pstRoot, "type");
+                            if(NULL != pItem && pItem->type == cJSON_String)
+                            {
+                                if(0 == strcpy(pItem->valuestring, "heart"))
+                                {
+                                    pItem = cJSON_GetObjectItem(pstRoot, "qq");
+                                    if(NULL != pItem && pItem->type == cJSON_Number)
+                                    {
+                                        yys_fd.qq[i] = pItem->valueint;
+                                        ret = 0;
+                                    }
+                                }
+                                else if(0 == strcpy(pItem->valuestring, "msg"))
+                                {
+                                    ret = 0;
+                                }
+                                else if(0 == strcpy(pItem->valuestring, "jpg"))
+                                {
+                                    ret = Yys_jpg_recv(pstRoot, i);
+                                }
+                            }
+                            
+                        }
+                        if(pstRoot)
+                        {
+                            free(pstRoot);
+                            pstRoot = NULL;
+                            pItem = NULL;
+                        }
+                        
                     }
-                    send(yys_fd.fd[i], "{\"reply\":\"OK\"}", 0, 0);
+                    if(!ret)
+                    {
+                        datalen = strlen("{\"reply\":\"ok\"}");
+                        memcpy(data, &datalen, sizeof(datalen));
+                        memcpy(data + sizeof(datalen), "{\"reply\":\"ok\"}", datalen);
+                        ret = -1;
+                    }
+                    send(yys_fd.fd[i], data, 4+datalen, 0);
                 }
             }
             pthread_mutex_unlock(g_mutexyys);
             usleep(1000);
         }
-        sleep(10);
     }
 }
 
@@ -252,6 +433,8 @@ void Create_YYS_Server(void* args)
     struct sockaddr_in server; /* server's address information */
     struct sockaddr_in client; /* client's address information */
     socklen_t addrlen;
+    cJSON *pstRoot = NULL;
+    cJSON *pItem = NULL;
 
     if(serverconfig->yysport == -1)
     {
@@ -319,12 +502,29 @@ void Create_YYS_Server(void* args)
                 int size = 0;
                 memcpy((void*)&size, buf, 4);
                 int len = strlen(buf+4);
-                yys_fd.fd[i] = connectfd;
                 if(size == len)
                 {
-                    char* str = strstr(buf+4, "qq:");
-                    yys_fd.qq[i] = atoi(str+3);
+                    pstRoot = cJSON_Parse(buf+4);
+                    if(pstRoot)
+                    {
+                        pItem = cJSON_GetObjectItem(pstRoot, "type");
+                        if(NULL != pItem && pItem->type == cJSON_String)
+                        {
+                            if(0 == strcpy(pItem->valuestring, "heart"))
+                            {
+                                pItem = cJSON_GetObjectItem(pstRoot, "qq");
+                                if(NULL != pItem && pItem->type == cJSON_Number)
+                                {
+                                    yys_fd.qq[i] = pItem->valueint;
+                                }
+                            }
+                        }
+                    }
+                    free(pstRoot);
+                    pstRoot = NULL;
+                    pItem = NULL;
                 }
+                yys_fd.fd[i] = connectfd;
             }
             else
             {

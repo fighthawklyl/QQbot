@@ -9,4 +9,6 @@ int FileRead(const char *path, const char *buf, int count);
 
 //写文件
 int FileWrite(const char *path, const char *buf, int count);
+
+
 #endif

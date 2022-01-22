@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include "cJSON.h"
 
 //获取文件大小
 int FileGetSize(const char *path)  
