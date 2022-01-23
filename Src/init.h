@@ -4,13 +4,14 @@
 
 typedef struct UserConfig
 {
-    int root;   //超级管理员qq
-    int *admin; //普通管理员qq  //区别在于有无 添加管理员的权限和 qq群中的高级权限(禁言之类)
+    long long root;   //超级管理员qq
+    long long *admin; //普通管理员qq  //区别在于有无 添加管理员的权限和 qq群中的高级权限(禁言之类)
+    int admin_size;
 }UserConfig;
 
 typedef struct JdList
 {
-    int qq;
+    long long qq;
     char account[20];
 }JdList;
 
@@ -23,7 +24,9 @@ typedef struct JdCmdList
 typedef struct JdConfig
 {
     JdList* jdlist;
+    int jdlistsize;        //京东账户数
     JdCmdList* jdcmdlist;
+    int jdcmdlistsize;       //京东命令数
     char* beanpath;
     char* cookiepath;
 }JdConfig;

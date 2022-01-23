@@ -12,7 +12,6 @@
 #define JDCONFIG_PATH "./config/JdConfig.json"
 #define GROUPCONFIG_PATH "./config/GroupConfig.json"
 
-
 extern ServerConfig serverconfig;
 extern ClientConfig clientconfig;
 
@@ -26,45 +25,51 @@ int checkfile(void)
     system("apt install wget");
     int ret = 0;
 
-    if(access("./config",F_OK))
+    if (access("./config", F_OK))
     {
         system("mkdir ./config");
-        access("./config",F_OK) && return -1;
+        access("./config", F_OK) && return -1;
     }
 
-    if(access("./config/GroupConfig.json",F_OK))
+    if (access("./jpg", F_OK))
     {
-        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/GroupConfig.json\" "); 
+        system("mkdir ./jpg");
+        access("./jpg", F_OK) && return -1;
+    }
+
+    if (access("./config/GroupConfig.json", F_OK))
+    {
+        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/GroupConfig.json\" ");
         system("mv ./GroupConfig.json ./config/GroupConfig.json");
-        access("./config/GroupConfig.json",F_OK) && ret += 1;
+        access("./config/GroupConfig.json", F_OK) &&ret += 1;
     }
 
-    if(access("./config/JdConfig.json",F_OK))
+    if (access("./config/JdConfig.json", F_OK))
     {
-        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/JdConfig.json\" "); 
+        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/JdConfig.json\" ");
         system("mv ./JdConfig.json ./config/JdConfig.json");
-        access("./config/JdConfig.json",F_OK) && ret += 2;
+        access("./config/JdConfig.json", F_OK) &&ret += 2;
     }
 
-    if(access("./config/PrivateConfig.json",F_OK))
+    if (access("./config/PrivateConfig.json", F_OK))
     {
-        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/PrivateConfig.json\" "); 
+        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/PrivateConfig.json\" ");
         system("mv ./PrivateConfig.json ./config/PrivateConfig.json");
-        access("./config/PrivateConfig.json",F_OK) && ret += 4;
+        access("./config/PrivateConfig.json", F_OK) &&ret += 4;
     }
-    
-    if(access("./config/ServerConfig.json",F_OK))
+
+    if (access("./config/ServerConfig.json", F_OK))
     {
-        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/ServerConfig.json\" "); 
+        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/ServerConfig.json\" ");
         system("mv ./ServerConfig.json ./config/ServerConfig.json");
-        access("./config/ServerConfig.json",F_OK) && ret += 8;
+        access("./config/ServerConfig.json", F_OK) &&ret += 8;
     }
-    
-    if(access("./config/UserConfig.json",F_OK))
+
+    if (access("./config/UserConfig.json", F_OK))
     {
-        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/UserConfig.json\" "); 
+        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/UserConfig.json\" ");
         system("mv ./UserConfig.json ./config/UserConfig.json");
-        access("./config/UserConfig.json",F_OK) && ret += 16;
+        access("./config/UserConfig.json", F_OK) &&ret += 16;
     }
 
     return ret;
@@ -79,60 +84,60 @@ int load_ServerConfig(void)
     cJSON *pItem = NULL;
     int num = 0;
 
-    filesize = FileGetSize(SERVERCONFIG_PATH)
-    if(filesize < 0)
+    filesize = FileGetSize(SERVERCONFIG_PATH);
+    if (filesize < 0)
     {
         return -1;
     }
 
     pBuffer = malloc(filesize);
-    if(NULL == pBuffer)
+    if (NULL == pBuffer)
     {
         goto _ret;
     }
 
     memset(pBuffer, 0, filesize);
-    if(FileRead(SERVERCONFIG_PATH, pBuffer, filesize))
+    if (!FileRead(SERVERCONFIG_PATH, pBuffer, filesize))
     {
         pstRoot = cJSON_Parse(pBuffer);
-        if(NULL == pstRoot)
+        if (NULL == pstRoot)
         {
             goto _ret;
         }
-        
+
         memset(serverconfig, 0, sizeof(ServerConfig));
         memset(clientconfig, 0, sizeof(ClientConfig));
 
         pItem = cJSON_GetObjectItem(pstRoot, "serverhost");
-        if(NULL != pItem && pItem->type == cJSON_String)
+        if (NULL != pItem && pItem->type == cJSON_String)
         {
             memcpy(serverconfig.host, pItem->valuestring, sizeof(pItem->valuestring));
             num |= 0x1;
         }
 
         pItem = cJSON_GetObjectItem(pstRoot, "serverport");
-        if(NULL != pItem && pItem->type == cJSON_Number)
+        if (NULL != pItem && pItem->type == cJSON_Number)
         {
             serverconfig.port = pItem->valueint;
             num |= 0x2;
         }
 
         pItem = cJSON_GetObjectItem(pstRoot, "yysport");
-        if(NULL != pItem && pItem->type == cJSON_Number)
+        if (NULL != pItem && pItem->type == cJSON_Number)
         {
             serverconfig.yysport = pItem->valueint;
             num |= 0x4;
         }
 
         pItem = cJSON_GetObjectItem(pstRoot, "clienthost");
-        if(NULL != pItem && pItem->type == cJSON_String)
+        if (NULL != pItem && pItem->type == cJSON_String)
         {
             memcpy(clientconfig.host, pItem->valuestring, sizeof(pItem->valuestring));
             num |= 0x8;
         }
 
         pItem = cJSON_GetObjectItem(pstRoot, "clientport");
-        if(NULL != pItem && pItem->type == cJSON_Number)
+        if (NULL != pItem && pItem->type == cJSON_Number)
         {
             clientconfig.port = pItem->valueint;
             num |= 0x10;
@@ -140,20 +145,19 @@ int load_ServerConfig(void)
     }
 
 _ret:
-    if(pBuffer)
+    if (pBuffer)
     {
         free(pBuffer);
         pBuffer = NULL;
     }
 
-    if(pstRoot)
+    if (pstRoot)
     {
         cJSON_Delete(pstRoot);
         pstRoot = NULL;
     }
 
     return num & 0x1B ? 0 : -1;
-
 }
 
 //读取主人，和超级管理员列表 User.Config
@@ -166,71 +170,71 @@ int load_UserConfig(void)
     cJSON *pItem = NULL;
     int num = 0;
 
-    filesize = FileGetSize(USERCONIFG_PATH)
-    if(filesize < 0)
+    filesize = FileGetSize(USERCONIFG_PATH);
+    if (filesize < 0)
     {
         return -1;
     }
 
     pBuffer = malloc(filesize);
-    if(NULL == pBuffer)
+    if (NULL == pBuffer)
     {
         goto _ret;
     }
 
     memset(pBuffer, 0, filesize);
 
-    if(FileRead(USERCONIFG_PATH, pBuffer, filesize))
+    if (!FileRead(USERCONIFG_PATH, pBuffer, filesize))
     {
         pstRoot = cJSON_Parse(pBuffer);
-        if(NULL == pstRoot)
+        if (NULL == pstRoot)
         {
             goto _ret;
         }
-        
+
         memset(userconfig, 0, sizeof(userconfig));
 
         pItem = cJSON_GetObjectItem(pstRoot, "root");
-        if(NULL != pItem && pItem->type == cJSON_Number)
+        if (NULL != pItem && pItem->type == cJSON_Number)
         {
             userconfig.root = pItem->valueint;
             num |= 0x1;
         }
 
         pItem = cJSON_GetObjectItem(pstRoot, "admin");
-        if(NULL != pItem && pItem->type == cJSON_Array)
+        if (NULL != pItem && pItem->type == cJSON_Array)
         {
             int arrsize = cJSON_GetArraySize(pItem);
-            if(arrsize)
+            if (arrsize)
             {
                 userconfig.admin = malloc(arrsize * sizeof(int));
-                if(NULL == userconfig.admin)
+                if (NULL == userconfig.admin)
                 {
                     goto _ret;
                 }
+                userconfig.admin_size = arrsize;
             }
-            
-            for(int i = 0; i < arrsize; i++)
+
+            for (int i = 0; i < arrsize; i++)
             {
-                cJSON* temp = cJSON_GetArrayItem(pItem, i);
-                if(NUll != temp && temp->type == cJSON_Number)
+                cJSON *temp = cJSON_GetArrayItem(pItem, i);
+                if (NUll != temp && temp->type == cJSON_Number)
                 {
                     userconfig.admin[i] = temp->valueint;
                 }
             }
             num |= 0x2;
         }
-
     }
 
 _ret:
-    if(pBuffer)
+    if (pBuffer)
     {
         free(pBuffer);
         pBuffer = NULL;
     }
 
-    if(pstRoot)
+    if (pstRoot)
     {
         cJSON_Delete(pstRoot);
         pstRoot = NULL;
@@ -263,60 +267,61 @@ int load_JdConfig(void)
     cJSON *ptemp = NULL;
     int num = 0;
 
-    filesize = FileGetSize(JDCONFIG_PATH)
-    if(filesize < 0)
+    filesize = FileGetSize(JDCONFIG_PATH);
+    if (filesize < 0)
     {
         return -1;
     }
 
     pBuffer = malloc(filesize);
-    if(NULL == pBuffer)
+    if (NULL == pBuffer)
     {
         goto _ret;
     }
 
     memset(pBuffer, 0, filesize);
 
-    if(FileRead(JDCONFIG_PATH, pBuffer, filesize))
+    if (!FileRead(JDCONFIG_PATH, pBuffer, filesize))
     {
         pstRoot = cJSON_Parse(pBuffer);
-        if(NULL == pstRoot)
+        if (NULL == pstRoot)
         {
             goto _ret;
         }
-        
+
         memset(jdconfig, 0, sizeof(jdconfig));
 
         pItem = cJSON_GetObjectItem(pstRoot, "jdlist");
-        if(NULL != pItem && pItem->type == cJSON_Array)
+        if (NULL != pItem && pItem->type == cJSON_Array)
         {
             int arrsize = cJSON_GetArraySize(pItem);
-            if(arrsize)
+            if (arrsize)
             {
                 jdconfig.jdlist = malloc(arrsize * sizeof(JdList));
-                if(NULL == jdconfig.jdlist)
+                if (NULL == jdconfig.jdlist)
                 {
                     goto _ret;
                 }
+                jdconfig.jdlistsize = arrsize;
             }
 
-            for(int i = 0; i < arrsize; i++)
+            for (int i = 0; i < arrsize; i++)
             {
-                cJSON* temp = cJSON_GetArrayItem(pItem, i);
-                if(NULL != temp && temp->type == cJSON_Object)
+                cJSON *temp = cJSON_GetArrayItem(pItem, i);
+                if (NULL != temp && temp->type == cJSON_Object)
                 {
                     ptemp = cJSON_GetObjectItem(temp, "qq");
-                    if(NULL != pItem && pItem->type == cJSON_Number)
+                    if (NULL != pItem && pItem->type == cJSON_Number)
                     {
                         jdconfig.jdlist[i]->qq = ptemp->valueint;
                     }
 
                     ptemp = cJSON_GetObjectItem(temp, "account");
-                    if(NULL != pItem && pItem->type == cJSON_String)
+                    if (NULL != pItem && pItem->type == cJSON_String)
                     {
                         int strsize = strlen(ptemp->valuestring);
                         jdconfig.jdlist[i].account = malloc(strsize + 1);
-                        if(NULL == jdconfig.jdlist[i].account)
+                        if (NULL == jdconfig.jdlist[i].account)
                         {
                             goto _ret;
                         }
@@ -329,60 +334,61 @@ int load_JdConfig(void)
         }
 
         pItem = cJSON_GetObjectItem(pstRoot, "jdcmdlist");
-        if(NULL != pItem && pItem->type == cJSON_Array)
+        if (NULL != pItem && pItem->type == cJSON_Array)
         {
             int arrsize = cJSON_GetArraySize(pItem);
-            if(arrsize)
+            if (arrsize)
             {
                 jdconfig.jdcmdlist = malloc(arrsize * sizeof(JdCmdList));
-                if(NULL == jdconfig.jdcmdlist)
+                if (NULL == jdconfig.jdcmdlist)
                 {
                     goto _ret;
                 }
+                jdconfig.jdcmdlistsize = arrsize;
             }
-            
-            for(int i = 0; i < arrsize; i++)
-            {
-                cJSON* temp = cJSON_GetArrayItem(pItem, i);
 
-                if(NULL != temp && temp->type == cJSON_Object)
+            for (int i = 0; i < arrsize; i++)
+            {
+                cJSON *temp = cJSON_GetArrayItem(pItem, i);
+
+                if (NULL != temp && temp->type == cJSON_Object)
                 {
                     ptemp = cJSON_GetObjectItem(temp, "cmd");
-                    if(NULL != pItem && pItem->type == cJSON_String)
+                    if (NULL != pItem && pItem->type == cJSON_String)
                     {
                         int strsize = strlen(ptemp->valuestring);
                         jdconfig.jdcmdlist[i].cmd = malloc(strsize + 1);
-                        if(NULL == jdconfig.jdcmdlist[i].cmd)
+                        if (NULL == jdconfig.jdcmdlist[i].cmd)
+                        {
+                            goto _ret;
+                        }
+
+                        memcpy(jdconfig.jdcmdlist[i].cmd, ptemp->valuestring, strsize);
+                    }
+
+                    ptemp = cJSON_GetObjectItem(temp, "jdcmd");
+                    if (NULL != pItem && pItem->type == cJSON_String)
+                    {
+                        int strsize = strlen(ptemp->valuestring);
+                        jdconfig.jdcmdlist[i].jdcmd = malloc(strsize + 1);
+                        if (NULL == jdconfig.jdcmdlist[i].jdcmd)
                         {
                             goto _ret;
                         }
 
                         memcpy(dconfig.jdcmdlist[i].cmd, ptemp->valuestring, strsize);
                     }
-
-                    ptemp = cJSON_GetObjectItem(temp, "jdcmd");
-                    if(NULL != pItem && pItem->type == cJSON_String)
-                    {
-                        int strsize = strlen(ptemp->valuestring);
-                        jdconfig.jdcmdlist[i].jdcmd = malloc(strsize + 1);
-                        if(NULL == jdconfig.jdcmdlist[i].jdcmd)
-                        {
-                            goto _ret;
-                        }
-
-                        memcpy(dconfig.jdcmdlist[i].cmd, ptemp->valuestring, strsize);
-                    }  
                 }
             }
             num |= 0x2;
         }
 
         pItem = cJSON_GetObjectItem(pstRoot, "beanpath");
-        if(NULL != pItem && pItem->type == cJSON_String)
+        if (NULL != pItem && pItem->type == cJSON_String)
         {
             int strsize = strlen(pItem->valuestring);
             jdconfig.beanpath = malloc(strsize + 1);
-            if(NULL == jdconfig.beanpath)
+            if (NULL == jdconfig.beanpath)
             {
                 goto _ret;
             }
@@ -392,11 +398,11 @@ int load_JdConfig(void)
         }
 
         pItem = cJSON_GetObjectItem(pstRoot, "cookiepath");
-        if(NULL != pItem && pItem->type == cJSON_String)
+        if (NULL != pItem && pItem->type == cJSON_String)
         {
             int strsize = strlen(pItem->valuestring);
             jdconfig.cookiepath = malloc(strsize + 1);
-            if(NULL == jdconfig.cookiepath)
+            if (NULL == jdconfig.cookiepath)
             {
                 goto _ret;
             }
@@ -407,13 +413,13 @@ int load_JdConfig(void)
     }
 
 _ret:
-    if(pBuffer)
+    if (pBuffer)
     {
         free(pBuffer);
         pBuffer = NULL;
     }
 
-    if(pstRoot)
+    if (pstRoot)
     {
         cJSON_Delete(pstRoot);
         pstRoot = NULL;
@@ -426,9 +432,9 @@ _ret:
 int init_Config(void)
 {
     int res = 0;
-    while(checkfile())
+    while (checkfile())
     {
-        if(3 == res)
+        if (3 == res)
         {
             printf("缺失配置文件！\n");
             return -1;
@@ -436,30 +442,30 @@ int init_Config(void)
         res++;
     }
 
-    if(load_ServerConfig())
+    if (load_ServerConfig())
     {
         return -1;
     }
 
-    if(load_GroupConfig())
+    if (load_GroupConfig())
     {
         return -1;
     }
 
-    if(load_UserConfig())
+    if (load_UserConfig())
     {
         return -1;
     }
 
-    if(load_PrivateConfig())
+    if (load_PrivateConfig())
     {
         return -1;
     }
 
-    if(load_JdConfig())
+    if (load_JdConfig())
     {
         return -1;
     }
-    
+
     return 0;
 }

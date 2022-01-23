@@ -48,13 +48,13 @@ static void (*cJSON_free)(void *ptr) = free;
 
 static char* cJSON_strdup(const char* str)
 {
-      size_t len;
-      char* copy;
+	size_t len;
+	char* copy;
 
-      len = strlen(str) + 1;
-      if (!(copy = (char*)cJSON_malloc(len))) return 0;
-      memcpy(copy,str,len);
-      return copy;
+	len = strlen(str) + 1;
+	if (!(copy = (char*)cJSON_malloc(len))) return 0;
+	memcpy(copy,str,len);
+	return copy;
 }
 
 void cJSON_InitHooks(cJSON_Hooks* hooks)
@@ -109,7 +109,7 @@ static const char *parse_number(cJSON *item,const char *num)
 	n=sign*n*pow(10.0,(scale+subscale*signsubscale));	/* number = +/- number.fraction * 10^+/- exponent */
 	
 	item->valuedouble=n;
-	item->valueint=(int)n;
+	item->valueint=(long long)n;
 	item->type=cJSON_Number;
 	return num;
 }
