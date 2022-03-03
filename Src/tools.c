@@ -78,7 +78,7 @@ int FileWrite(const char *path, const char *buf, int count)
 }
 
 //数字字符转long数字
-int atol(char *ch, long *num)
+int chtol(char *ch, long *num)
 {
 	int size = strlen(ch);
 	int temp = 0;
@@ -103,7 +103,7 @@ int atol(char *ch, long *num)
 }
 
 // long数字转字符串
-int ltoa(long num, char *ch, int size)
+int ltoch(long num, char *ch, int size)
 {
 	int ret = 0;
 	long temp = 0;

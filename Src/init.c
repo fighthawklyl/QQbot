@@ -1,6 +1,8 @@
 #include <unistd.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <string.h>
 #include "init.h"
 #include "cJSON.h"
 #include "tools.h"
@@ -22,54 +24,75 @@ extern JdConfig jdconfig;
 //成功返回 0 ，不存在从github仓库拉取，
 int checkfile(void)
 {
-    system("apt install wget");
+//    system("apt install wget");
     int ret = 0;
 
     if (access("./config", F_OK))
     {
         system("mkdir ./config");
-        access("./config", F_OK) && return -1;
+        if(access("./config", F_OK))
+        {
+            return -1;
+        }
     }
 
     if (access("./jpg", F_OK))
     {
         system("mkdir ./jpg");
-        access("./jpg", F_OK) && return -1;
+        if(access("./jpg", F_OK))
+        {
+            return -1;
+        }
     }
 
     if (access("./config/GroupConfig.json", F_OK))
     {
-        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/GroupConfig.json\" ");
+        system("wget -P ./ -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/GroupConfig.json\" ");
         system("mv ./GroupConfig.json ./config/GroupConfig.json");
-        access("./config/GroupConfig.json", F_OK) &&ret += 1;
-    }
+        if(access("./config/GroupConfig.json", F_OK))
+        {
+            ret += 1;
+        }
+    } 
 
     if (access("./config/JdConfig.json", F_OK))
     {
-        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/JdConfig.json\" ");
+        system("wget -P ./ -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/JdConfig.json\" ");
         system("mv ./JdConfig.json ./config/JdConfig.json");
-        access("./config/JdConfig.json", F_OK) &&ret += 2;
+        if(access("./config/JdConfig.json", F_OK))
+        {
+            ret += 2;
+        }
     }
 
     if (access("./config/PrivateConfig.json", F_OK))
     {
-        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/PrivateConfig.json\" ");
+        system("wget -P ./ -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/PrivateConfig.json\" ");
         system("mv ./PrivateConfig.json ./config/PrivateConfig.json");
-        access("./config/PrivateConfig.json", F_OK) &&ret += 4;
+        if(access("./config/PrivateConfig.json", F_OK))
+        {
+            ret += 4;
+        }
     }
 
     if (access("./config/ServerConfig.json", F_OK))
     {
-        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/ServerConfig.json\" ");
+        system("wget -P ./ -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/ServerConfig.json\" ");
         system("mv ./ServerConfig.json ./config/ServerConfig.json");
-        access("./config/ServerConfig.json", F_OK) &&ret += 8;
+        if(access("./config/ServerConfig.json", F_OK))
+        {
+            ret += 8;
+        }
     }
 
     if (access("./config/UserConfig.json", F_OK))
     {
-        system("wget -P /root -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/UserConfig.json\" ");
+        system("wget -P . -N --no-check-certificate \"https://raw.githubusercontent.com/fighthawklyl/QQbot/main/config/UserConfig.json\" ");
         system("mv ./UserConfig.json ./config/UserConfig.json");
-        access("./config/UserConfig.json", F_OK) &&ret += 16;
+        if(access("./config/UserConfig.json", F_OK))
+        {
+            ret += 16;
+        }
     }
 
     return ret;
@@ -105,13 +128,13 @@ int load_ServerConfig(void)
             goto _ret;
         }
 
-        memset(serverconfig, 0, sizeof(ServerConfig));
-        memset(clientconfig, 0, sizeof(ClientConfig));
+        memset(&serverconfig, 0, sizeof(ServerConfig));
+        memset(&clientconfig, 0, sizeof(ClientConfig));
 
         pItem = cJSON_GetObjectItem(pstRoot, "serverhost");
         if (NULL != pItem && pItem->type == cJSON_String)
         {
-            memcpy(serverconfig.host, pItem->valuestring, sizeof(pItem->valuestring));
+            memcpy((void*)serverconfig.host, (void*)pItem->valuestring, sizeof(pItem->valuestring));
             num |= 0x1;
         }
 
@@ -132,7 +155,7 @@ int load_ServerConfig(void)
         pItem = cJSON_GetObjectItem(pstRoot, "clienthost");
         if (NULL != pItem && pItem->type == cJSON_String)
         {
-            memcpy(clientconfig.host, pItem->valuestring, sizeof(pItem->valuestring));
+            memcpy((void*)clientconfig.host, (void*)pItem->valuestring, sizeof(pItem->valuestring));
             num |= 0x8;
         }
 
@@ -192,7 +215,7 @@ int load_UserConfig(void)
             goto _ret;
         }
 
-        memset(userconfig, 0, sizeof(userconfig));
+        memset(&userconfig, 0, sizeof(userconfig));
 
         pItem = cJSON_GetObjectItem(pstRoot, "root");
         if (NULL != pItem && pItem->type == cJSON_Number)
@@ -218,7 +241,7 @@ int load_UserConfig(void)
             for (int i = 0; i < arrsize; i++)
             {
                 cJSON *temp = cJSON_GetArrayItem(pItem, i);
-                if (NUll != temp && temp->type == cJSON_Number)
+                if (NULL != temp && temp->type == cJSON_Number)
                 {
                     userconfig.admin[i] = temp->valueint;
                 }
@@ -289,7 +312,7 @@ int load_JdConfig(void)
             goto _ret;
         }
 
-        memset(jdconfig, 0, sizeof(jdconfig));
+        memset(&jdconfig, 0, sizeof(jdconfig));
 
         pItem = cJSON_GetObjectItem(pstRoot, "jdlist");
         if (NULL != pItem && pItem->type == cJSON_Array)
@@ -313,19 +336,19 @@ int load_JdConfig(void)
                     ptemp = cJSON_GetObjectItem(temp, "qq");
                     if (NULL != pItem && pItem->type == cJSON_Number)
                     {
-                        jdconfig.jdlist[i]->qq = ptemp->valueint;
+                        jdconfig.jdlist[i].qq = ptemp->valueint;
                     }
 
                     ptemp = cJSON_GetObjectItem(temp, "account");
                     if (NULL != pItem && pItem->type == cJSON_String)
                     {
                         int strsize = strlen(ptemp->valuestring);
-                        jdconfig.jdlist[i].account = malloc(strsize + 1);
+/*                        jdconfig.jdlist[i].account = malloc(strsize + 1);
                         if (NULL == jdconfig.jdlist[i].account)
                         {
                             goto _ret;
                         }
-
+*/
                         memcpy(jdconfig.jdlist[i].account, ptemp->valuestring, strsize);
                     }
                 }
@@ -376,7 +399,7 @@ int load_JdConfig(void)
                             goto _ret;
                         }
 
-                        memcpy(dconfig.jdcmdlist[i].cmd, ptemp->valuestring, strsize);
+                        memcpy(jdconfig.jdcmdlist[i].cmd, ptemp->valuestring, strsize);
                     }
                 }
             }

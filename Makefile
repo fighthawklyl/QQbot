@@ -3,8 +3,9 @@ CC=gcc
 STD=-std=gnu99
 LIB= -lm -lpthread
 FLAGS=-Wall # -Werror -Wall
-OBJ=cJSON.o server.o
-BIN=qq
+OBJ=./Src/cJSON.o ./Src/server.o ./Src/group.o ./Src/init.o ./Src/main.o ./Src/message.o ./Src/private.o \
+	./Src/tools.o
+BIN=qqbot
 
 # 入口编译目标 合并
 all:$(OBJ)

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -15,7 +16,8 @@
 #define BACKLOG 5
 #define MAXRECVLEN 10240
 extern Yys_fd yys_fd;
-
+extern ClientConfig clientconfig;
+extern ServerConfig serverconfig;
 static pthread_mutex_t g_mutexyys = PTHREAD_MUTEX_INITIALIZER;
 
 pthread_t yysclient_tid[10] = {};
@@ -32,13 +34,12 @@ typedef struct Private_msg
     char sub_type[15];
     long time;
     long user_id;
-};
+}Private_msg;
 
 int send_request_msg(char *sendbuf, char *recvbuf, int recvsize)
 {
-    int socketfd;              /* socket descriptors */
+    int socketfd, listenfd;              /* socket descriptors */
     struct sockaddr_in server; /* server's address information */
-    socklen_t addrlen;
     /* Create TCP socket */
     if ((socketfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
@@ -52,8 +53,8 @@ int send_request_msg(char *sendbuf, char *recvbuf, int recvsize)
     bzero(&server, sizeof(server));
 
     server.sin_family = AF_INET;
-    server.sin_port = htons(clientconfig->port);
-    server.sin_addr.s_addr = inet_addr(clientconfig->host);
+    server.sin_port = htons(clientconfig.port);
+    server.sin_addr.s_addr = inet_addr(clientconfig.host);
 
     if (connect(socketfd, (struct sockaddr *)&server, sizeof(server)))
     {
@@ -79,18 +80,17 @@ void Create_CQ_Server(void *args)
     char sendText[10240];
     char data[10240];
     char lenth[10];
-    ServerConfig *serverconfig = (ServerConfig *)args;
     char buf[MAXRECVLEN];
     int listenfd, connectfd;   /* socket descriptors */
     struct sockaddr_in server; /* server's address information */
     struct sockaddr_in client; /* client's address information */
     socklen_t addrlen;
-
-    if (serverconfig->port == -1)
+printf("---1----\n");
+    if (serverconfig.port == -1)
     {
         return;
     }
-
+printf("---2----\n");
     /* Create TCP socket */
     if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
@@ -106,8 +106,8 @@ void Create_CQ_Server(void *args)
     bzero(&server, sizeof(server));
 
     server.sin_family = AF_INET;
-    server.sin_port = htons(serverconfig->port);
-    server.sin_addr.s_addr = inet_addr(serverconfig->host);
+    server.sin_port = htons(serverconfig.port);
+    server.sin_addr.s_addr = inet_addr(serverconfig.host);
     //  server.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind(listenfd, (struct sockaddr *)&server, sizeof(server)) == -1)
     {
@@ -192,9 +192,9 @@ int Yys_msg_send(int qq, char *data, int size)
     {
         if (yys_fd.qq[i] == qq && yys_fd.fd[i] > 0)
         {
-            pthread_mutex_lock(g_mutexyys);
+            pthread_mutex_lock(&g_mutexyys);
             send(yys_fd.fd[i], data, size, 0);
-            pthread_mutex_unlock(g_mutexyys);
+            pthread_mutex_unlock(&g_mutexyys);
             return 0;
         }
     }
@@ -208,6 +208,7 @@ int Yys_jpg_recv(cJSON *pstRoot, int index)
     char *jpgname = NULL;
     char jpg_path[100] = {0};
     fd_set Readfd;
+    int fd;
     char data[50] = {0};
     int datalen = 0;
     int size = 0;
@@ -227,7 +228,7 @@ int Yys_jpg_recv(cJSON *pstRoot, int index)
                 jpgname = pItem->valuestring;
                 strcpy(jpg_path, "./jpg");
                 memcpy(jpg_path + 6, jpgname, strlen(jpgname));
-                int fd = open(jpg_path, O_WRONLY | O_TRUNC);
+                fd = open(jpg_path, O_WRONLY | O_TRUNC);
                 if (fd)
                 {
                     datalen = strlen("{\"reply\":\"ok\"}");
@@ -348,7 +349,7 @@ void YYS_Server(void *args)
 
         for (int i = 0; i < 10; i++)
         {
-            pthread_mutex_lock(g_mutexyys);
+            pthread_mutex_lock(&g_mutexyys);
             if (yys_fd.fd[i])
             {
                 TimeOut.tv_sec = 0;
@@ -356,7 +357,7 @@ void YYS_Server(void *args)
                 FD_ZERO(&Readfd);
                 FD_SET(yys_fd.fd[i], &Readfd);
                 iret = select(yys_fd.fd[i] + 1, &Readfd, NULL, NULL, &TimeOut);
-                if (iret)
+                if (iret > 0)
                 {
                     memset(buf, 0, 1024);
                     memset(data, 0, 100);
@@ -373,7 +374,7 @@ void YYS_Server(void *args)
                         yys_fd.qq[i] = -1;
                         send(yys_fd.fd[i], data, 4 + datalen, 0);
                         usleep(10);
-                        pthread_mutex_unlock(g_mutexyys);
+                        pthread_mutex_unlock(&g_mutexyys);
                         continue;
                     }
 
@@ -404,7 +405,7 @@ void YYS_Server(void *args)
                                 {
                                     ret = Yys_jpg_recv(pstRoot, i);
                                     //如果成功接收，发送给该qq,进行私聊消息json组装
-                                    Yys_msg_send(int qq, char *data, int size);
+                                    //Yys_msg_send(int qq, char *data, int size);
                                 }
                             }
                         }
@@ -425,7 +426,7 @@ void YYS_Server(void *args)
                     send(yys_fd.fd[i], data, 4 + datalen, 0);
                 }
             }
-            pthread_mutex_unlock(g_mutexyys);
+            pthread_mutex_unlock(&g_mutexyys);
             usleep(1000);
         }
     }
@@ -435,7 +436,6 @@ void Create_YYS_Server(void *args)
 {
     char sendText[1024];
     char lenth[10];
-    ServerConfig *serverconfig = (ServerConfig *)args;
     char buf[MAXRECVLEN];
     int listenfd, connectfd;   /* socket descriptors */
     struct sockaddr_in server; /* server's address information */
@@ -444,7 +444,7 @@ void Create_YYS_Server(void *args)
     cJSON *pstRoot = NULL;
     cJSON *pItem = NULL;
 
-    if (serverconfig->yysport == -1)
+    if (serverconfig.yysport == -1)
     {
         return;
     }
@@ -464,8 +464,8 @@ void Create_YYS_Server(void *args)
     bzero(&server, sizeof(server));
 
     server.sin_family = AF_INET;
-    server.sin_port = htons(serverconfig->yysport);
-    server.sin_addr.s_addr = inet_addr(serverconfig->host);
+    server.sin_port = htons(serverconfig.yysport);
+    server.sin_addr.s_addr = inet_addr(serverconfig.host);
     //  server.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind(listenfd, (struct sockaddr *)&server, sizeof(server)) == -1)
     {
@@ -537,7 +537,7 @@ void Create_YYS_Server(void *args)
             }
             else
             {
-                (i == 9) && close(connectfd);
+                (i == 10) && close(connectfd);
             }
         }
     }
@@ -556,20 +556,25 @@ int Start_Server(void)
     int err = pthread_create(&cqserver_tid, NULL, (void *)&Create_CQ_Server, NULL);
     if (err)
     {
-        perror("%s\n", err) return -1;
+        perror(err); return -1;
     }
-
+/*
     //阴阳师服务器
     err = pthread_create(&yysserver_tid, NULL, (void *)&Create_YYS_Server, NULL);
     if (err)
     {
-        perror("%s\n", err) return -1;
+        perror(err); return -1;
     }
 
     // yys心跳，以及脚本和用户通过qq关联
     err = pthread_create(&yysheart_tid, NULL, (void *)&YYS_Server, NULL);
     if (err)
     {
-        perror("%s\n", err) return -1;
+        perror(err); return -1;
+    }*/
+    while(1)
+    {
+        printf("-------\n");
+        sleep(10);
     }
 }

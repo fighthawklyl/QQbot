@@ -95,16 +95,16 @@ int Parse_message(cJSON *pstRoot, char *sendmsg, int size)
                 buf = strstr(pstGroup->valuestring, jdconfig.jdcmdlist[i].cmd);
                 if (buf)
                 {
-                    if (!strcmy(jdconfig.jdcmdlist[i].cmd, "查豆子"))
+                    if (!strcmp(jdconfig.jdcmdlist[i].cmd, "查豆子"))
                     {
                         return Get_Jdbean(qq, jdconfig.jdcmdlist[i].jdcmd, sendmsg, size);
                     }
 
-                    if (!strcmy(jdconfig.jdcmdlist[i].cmd, "更新cookie"))
+                    if (!strcmp(jdconfig.jdcmdlist[i].cmd, "更新cookie"))
                     {
                         return -1;
                     }
-                    if (!strcmy(jdconfig.jdcmdlist[i].cmd, "添加cookie"))
+                    if (!strcmp(jdconfig.jdcmdlist[i].cmd, "添加cookie"))
                     {
                         return -1;
                     }

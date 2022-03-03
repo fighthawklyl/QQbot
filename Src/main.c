@@ -9,6 +9,7 @@ Yys_fd yys_fd;
 
 int main()
 {
+    printf("-------------1----------\n");
     int ret = 0;
     ret = init_Config();
     if(ret < 0)
@@ -16,7 +17,7 @@ int main()
         printf("init config error!\n");
         return -1;
     }
-
+printf("-------------1----------\n");
     //启动qq机器人线程服务，更具json文件配置启动对应线程
     Start_Server();
 
