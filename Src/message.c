@@ -169,7 +169,7 @@ int post_message_type(cJSON *pstRoot, char* sendmsg, int size)
         printf("message_type = %s\n",pstGroup->valuestring);
         if(!strcmp(pstGroup->valuestring,"private"))
         {
-            
+            return Parse_message(pstRoot, sendmsg, size);
         }
 
         if(!strcmp(pstGroup->valuestring,"group"))

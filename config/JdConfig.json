@@ -8,7 +8,7 @@
     "jdcmdlist":[
         {
             "cmd":"查豆子",
-            "jdcmd":""
+            "jdcmd":"jd_bean_change.js"
         }
     ],
     "beanpath":"",

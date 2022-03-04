@@ -86,6 +86,7 @@ void Create_CQ_Server(void *args)
     struct sockaddr_in client; /* client's address information */
     socklen_t addrlen;
 printf("---1----\n");
+printf("host:%s   port:%d \n",serverconfig.host, serverconfig.port);
     if (serverconfig.port == -1)
     {
         return;
@@ -140,6 +141,7 @@ printf("---2----\n");
         {
             memset(buf, 0, MAXRECVLEN);
             memset(data, 0, 10240);
+            memset(sendText, 0, 10240);
             iret = recv(connectfd, buf, MAXRECVLEN, 0);
             if (iret > 0)
             {
@@ -148,11 +150,13 @@ printf("---2----\n");
                 char *strlen1 = strstr(buf, "Content-Length: ");
                 char *strlen2 = strstr(buf, "Content-Type:");
                 int size = strlen2 - strlen1 - 18;
-                strncpy(lenth, strlen + 16, size);
+                strncpy(lenth, strlen1 + 16, size);
+                printf("size = %d, lenth = %s\n",size,lenth);
                 char *str = strstr(buf, "\r\n\r\n{");
                 char *str1 = strstr(buf, "}\n");
                 int len = str1 - str - 3;
                 ret = Parse_post_type(str, data, 10240);
+                printf("ret = %d ,data = %s,lenth = %s \n",ret,data,lenth);
                 if ((len + 1) != atoi(lenth))
                     ret = -1;
                 printf("str = %c\n", *(str + 4));
@@ -177,7 +181,7 @@ printf("---2----\n");
 
             sprintf(sendText, "HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: %d\r\n\r\n%s\r\n\r\n", strlen(data), data);
             printf("%s\n", sendText);
-            send(connectfd, sendText, sizeof(sendText), 0); /* send to the client welcome message */
+            send(connectfd, sendText, strlen(sendText), 0); /* send to the client welcome message */
             close(connectfd);
             break;
         }
@@ -558,7 +562,7 @@ int Start_Server(void)
     {
         perror(err); return -1;
     }
-/*
+
     //阴阳师服务器
     err = pthread_create(&yysserver_tid, NULL, (void *)&Create_YYS_Server, NULL);
     if (err)
@@ -571,7 +575,7 @@ int Start_Server(void)
     if (err)
     {
         perror(err); return -1;
-    }*/
+    }
     while(1)
     {
         printf("-------\n");

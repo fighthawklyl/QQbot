@@ -118,7 +118,7 @@ int load_ServerConfig(void)
     {
         goto _ret;
     }
-
+    
     memset(pBuffer, 0, filesize);
     if (!FileRead(SERVERCONFIG_PATH, pBuffer, filesize))
     {
@@ -128,13 +128,18 @@ int load_ServerConfig(void)
             goto _ret;
         }
 
+        for(int i = 0;i < filesize;i++)
+        {
+        printf("%c",pBuffer[i]);
+        }
+
         memset(&serverconfig, 0, sizeof(ServerConfig));
         memset(&clientconfig, 0, sizeof(ClientConfig));
 
         pItem = cJSON_GetObjectItem(pstRoot, "serverhost");
         if (NULL != pItem && pItem->type == cJSON_String)
         {
-            memcpy((void*)serverconfig.host, (void*)pItem->valuestring, sizeof(pItem->valuestring));
+            memcpy((void*)serverconfig.host, (void*)pItem->valuestring, strlen(pItem->valuestring));
             num |= 0x1;
         }
 
@@ -155,7 +160,7 @@ int load_ServerConfig(void)
         pItem = cJSON_GetObjectItem(pstRoot, "clienthost");
         if (NULL != pItem && pItem->type == cJSON_String)
         {
-            memcpy((void*)clientconfig.host, (void*)pItem->valuestring, sizeof(pItem->valuestring));
+            memcpy((void*)clientconfig.host, (void*)pItem->valuestring, strlen(pItem->valuestring));
             num |= 0x8;
         }
 
@@ -215,12 +220,18 @@ int load_UserConfig(void)
             goto _ret;
         }
 
+        for(int i = 0;i < filesize;i++)
+        {
+        printf("%c",pBuffer[i]);
+        }
+
         memset(&userconfig, 0, sizeof(userconfig));
 
         pItem = cJSON_GetObjectItem(pstRoot, "root");
         if (NULL != pItem && pItem->type == cJSON_Number)
         {
             userconfig.root = pItem->valueint;
+            printf("root = %ld , valueint = %d \n",userconfig.root,pItem->valueint);
             num |= 0x1;
         }
 
@@ -312,6 +323,11 @@ int load_JdConfig(void)
             goto _ret;
         }
 
+        for(int i = 0;i < filesize;i++)
+        {
+        printf("%c",pBuffer[i]);
+        }
+
         memset(&jdconfig, 0, sizeof(jdconfig));
 
         pItem = cJSON_GetObjectItem(pstRoot, "jdlist");
@@ -326,6 +342,7 @@ int load_JdConfig(void)
                     goto _ret;
                 }
                 jdconfig.jdlistsize = arrsize;
+                printf("arrsize = %d \n",arrsize);
             }
 
             for (int i = 0; i < arrsize; i++)
@@ -334,13 +351,13 @@ int load_JdConfig(void)
                 if (NULL != temp && temp->type == cJSON_Object)
                 {
                     ptemp = cJSON_GetObjectItem(temp, "qq");
-                    if (NULL != pItem && pItem->type == cJSON_Number)
+                    if (NULL != ptemp && ptemp->type == cJSON_Number)
                     {
                         jdconfig.jdlist[i].qq = ptemp->valueint;
                     }
 
                     ptemp = cJSON_GetObjectItem(temp, "account");
-                    if (NULL != pItem && pItem->type == cJSON_String)
+                    if (NULL != ptemp && ptemp->type == cJSON_String)
                     {
                         int strsize = strlen(ptemp->valuestring);
 /*                        jdconfig.jdlist[i].account = malloc(strsize + 1);
@@ -373,24 +390,27 @@ int load_JdConfig(void)
             for (int i = 0; i < arrsize; i++)
             {
                 cJSON *temp = cJSON_GetArrayItem(pItem, i);
-
+    printf("\33[46;30m __________%s,%d____________\33[0m\n",__FILE__, __LINE__);
                 if (NULL != temp && temp->type == cJSON_Object)
                 {
                     ptemp = cJSON_GetObjectItem(temp, "cmd");
-                    if (NULL != pItem && pItem->type == cJSON_String)
+                    printf("\33[46;30m __________%s,%d,%d____________\33[0m\n",__FILE__,ptemp->type, __LINE__);
+                    if (NULL != ptemp && ptemp->type == cJSON_String)
                     {
+                        printf("\33[46;30m __________%s,%d____________\33[0m\n",__FILE__, __LINE__);
                         int strsize = strlen(ptemp->valuestring);
                         jdconfig.jdcmdlist[i].cmd = malloc(strsize + 1);
                         if (NULL == jdconfig.jdcmdlist[i].cmd)
                         {
                             goto _ret;
                         }
-
+printf("\33[46;30m __________%s,%d____________\33[0m\n",__FILE__, __LINE__);
                         memcpy(jdconfig.jdcmdlist[i].cmd, ptemp->valuestring, strsize);
+                        printf("cmd : %s",jdconfig.jdcmdlist[i].cmd);
                     }
 
                     ptemp = cJSON_GetObjectItem(temp, "jdcmd");
-                    if (NULL != pItem && pItem->type == cJSON_String)
+                    if (NULL != ptemp && ptemp->type == cJSON_String)
                     {
                         int strsize = strlen(ptemp->valuestring);
                         jdconfig.jdcmdlist[i].jdcmd = malloc(strsize + 1);
@@ -399,7 +419,8 @@ int load_JdConfig(void)
                             goto _ret;
                         }
 
-                        memcpy(jdconfig.jdcmdlist[i].cmd, ptemp->valuestring, strsize);
+                        memcpy(jdconfig.jdcmdlist[i].jdcmd, ptemp->valuestring, strsize);
+                        printf("jdcmd : %s",jdconfig.jdcmdlist[i].jdcmd);
                     }
                 }
             }
@@ -480,8 +501,8 @@ int init_Config(void)
         return -1;
     }
 
-    if (load_PrivateConfig())
     {
+    if (load_PrivateConfig())
         return -1;
     }
 

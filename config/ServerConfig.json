@@ -1,7 +1,7 @@
 {
     "serverhost":"127.0.0.1",
     "serverport":5701,
-    "clienthost":"",
-    "clientpost":5700,
+    "clienthost":"127.0.0.1",
+    "clientport":5700,
     "yysport":5702
 }
